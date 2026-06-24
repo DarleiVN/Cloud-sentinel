@@ -1,0 +1,13 @@
+[*] Iniciando analise de volumes EBS...
+
+[+] Relatorio de Auditoria (JSON Gerado):
+[
+    {
+        "Resource_Type": "EBS_Volume",
+        "Volume_Id": "vol-9876543210fedcba0",
+        "Size_GB": 50,
+        "Type": "gp2",
+        "Days_Idle": 14,
+        "Estimated_Monthly_Loss_USD": 5.0
+    }
+]
