@@ -22,6 +22,7 @@ def get_mock_aws_data():
             }
         ]
     }
+    
     mock_eip = {
         "Addresses": [
             {
@@ -37,4 +38,30 @@ def get_mock_aws_data():
             }
         ]
     }
-    return mock_ebs, mock_eip
+
+    # NOVO MOCK: Simulação de instâncias EC2
+    mock_ec2 = {
+        "Reservations": [
+            {
+                "Instances": [
+                    {
+                        "InstanceId": "i-1234567890abcdef0",
+                        "InstanceType": "t3.medium",
+                        "State": {"Name": "running"},
+                        "LaunchTime": datetime(2026, 6, 1, tzinfo=timezone.utc),
+                        # Simulação de métrica que extrairíamos do CloudWatch
+                        "CpuUtilizationAverage": 4.2 
+                    },
+                    {
+                        "InstanceId": "i-9876543210abcdef1",
+                        "InstanceType": "t3.large",
+                        "State": {"Name": "running"},
+                        "LaunchTime": datetime(2026, 6, 15, tzinfo=timezone.utc),
+                        "CpuUtilizationAverage": 78.5
+                    }
+                ]
+            }
+        ]
+    }
+    
+    return mock_ebs, mock_eip, mock_ec2

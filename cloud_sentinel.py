@@ -1,9 +1,8 @@
 import json
 import sys
 
-# Importações locais do nosso próprio projeto modularizado
 from mocks import get_mock_aws_data
-from auditors import audit_ebs_volumes, audit_elastic_ips
+from auditors import audit_ebs_volumes, audit_elastic_ips, audit_ec2_right_sizing
 
 try:
     import boto3
@@ -15,16 +14,17 @@ except ImportError:
 if __name__ == "__main__":
     print("[*] Iniciando motor de auditoria Cloud Sentinel...")
     
-    # INTERRUPTOR: True = Mock/Simulado | False = AWS Real
     MODO_MOCK = True
-    
     relatorio_completo = []
 
     if MODO_MOCK:
         print("[!] Executando em MODO SIMULADO (Dados Sintéticos).")
-        ebs_data, eip_data = get_mock_aws_data()
+        ebs_data, eip_data, ec2_data = get_mock_aws_data()
+        
+        # Executa as 3 auditorias agora!
         relatorio_completo.extend(audit_ebs_volumes(ebs_data))
         relatorio_completo.extend(audit_elastic_ips(eip_data))
+        relatorio_completo.extend(audit_ec2_right_sizing(ec2_data))
     else:
         print("[⚡] Conectando à AWS Real via Boto3...")
         try:
@@ -32,12 +32,14 @@ if __name__ == "__main__":
             
             real_ebs = ec2_client.describe_volumes()
             real_eip = ec2_client.describe_addresses()
+            real_ec2 = ec2_client.describe_instances()
             
             relatorio_completo.extend(audit_ebs_volumes(real_ebs))
             relatorio_completo.extend(audit_elastic_ips(real_eip))
+            relatorio_completo.extend(audit_ec2_right_sizing(real_ec2))
             
         except (NoCredentialsError, PartialCredentialsError):
-            print("[X] Erro de Autenticação: Nenhuma credencial AWS encontrada na WSL.")
+            print("[X] Erro de Autenticação: Nenhuma credencial AWS encontrada.")
             sys.exit(1)
         except Exception as e:
             print(f"[X] Erro inesperado ao conectar na AWS: {e}")

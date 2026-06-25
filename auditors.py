@@ -35,3 +35,30 @@ def audit_elastic_ips(data):
                 "Estimated_Monthly_Loss_USD": 3.60
             })
     return idle_eips
+
+def audit_ec2_right_sizing(data):
+    """Identifica instâncias EC2 ligadas com uso de CPU abaixo de 10%."""
+    underutilized_instances = []
+    
+    for reservation in data.get("Reservations", []):
+        for instance in reservation.get("Instances", []):
+            state = instance.get("State", {}).get("Name")
+            cpu_usage = instance.get("CpuUtilizationAverage", 100.0)
+            
+            # Filtro: Se estiver rodando E a CPU média for menor que 10%
+            if state == "running" and cpu_usage < 10.0:
+                instance_id = instance["InstanceId"]
+                instance_type = instance["InstanceType"]
+                
+                # Estimativa de economia simulada ao fazer o downgrade de tipo
+                estimated_savings = 23.00 
+                
+                underutilized_instances.append({
+                    "Resource_Type": "EC2_Instance_RightSizing",
+                    "Resource_Id": instance_id,
+                    "Details": f"Type: {instance_type} | Avg CPU: {cpu_usage}%",
+                    "Days_Idle": "N/A",
+                    "Estimated_Monthly_Loss_USD": round(estimated_savings, 2)
+                })
+                
+    return underutilized_instances
