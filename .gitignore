@@ -1,6 +1,10 @@
+cat << 'EOF' > .gitignore
 __pycache__/
 .pytest_cache/
 .vscode/
 *.log
 resultado_auditoria.txt
 *.db
+*gpg.key
+relatorio_finops.csv
+EOF

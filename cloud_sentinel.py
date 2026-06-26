@@ -2,7 +2,16 @@ import json
 import sys
 
 from mocks import get_mock_aws_data
-from auditors import audit_ebs_volumes, audit_elastic_ips, audit_ec2_right_sizing, export_to_csv, save_to_database
+# Organizado com parênteses para incluir as duas novas funções de FinOps
+from auditors import (
+    audit_ebs_volumes, 
+    audit_elastic_ips, 
+    audit_ec2_right_sizing, 
+    audit_rds_databases,  # Adicionado
+    audit_s3_buckets,     # Adicionado
+    export_to_csv, 
+    save_to_database
+)
 
 try:
     import boto3
@@ -24,6 +33,9 @@ if __name__ == "__main__":
         relatorio_completo.extend(audit_ebs_volumes(ebs_data))
         relatorio_completo.extend(audit_elastic_ips(eip_data))
         relatorio_completo.extend(audit_ec2_right_sizing(ec2_data))
+        relatorio_completo.extend(audit_rds_databases())  
+        relatorio_completo.extend(audit_s3_buckets())  
+    
     else:
         print("[⚡] Conectando à AWS Real via Boto3...")
         try:
@@ -49,4 +61,4 @@ if __name__ == "__main__":
 
     # Novas engrenagens de saída de dados:
     export_to_csv(relatorio_completo)
-    save_to_database(relatorio_completo) # <--- O NOVO MOTOR DE BANCO DE DADOS AQUI!
+    save_to_database(relatorio_completo)

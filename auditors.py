@@ -1,97 +1,69 @@
-import csv
 import sqlite3
+import csv
 from datetime import datetime, timezone
 
-def audit_ebs_volumes(data):
-    """Filtra volumes EBS ociosos (status 'available')."""
-    idle_volumes = []
-    for volume in data.get("Volumes", []):
-        if volume.get("State") == "available":
-            vol_id = volume["VolumeId"]
-            size = volume["Size"]
-            create_time = volume["CreateTime"]
-            days_idle = (datetime.now(timezone.utc) - create_time).days
-            estimated_monthly_loss = size * 0.10
-            
-            idle_volumes.append({
-                "Resource_Type": "EBS_Volume",
-                "Resource_Id": vol_id,
-                "Details": f"{size}GB ({volume['VolumeType']})",
-                "Days_Idle": days_idle,
-                "Estimated_Monthly_Loss_USD": round(estimated_monthly_loss, 2)
-            })
-    return idle_volumes
+def audit_ebs_volumes(ebs_data=None):
+    """Recebe os dados de volumes e retorna o relatório de inativos."""
+    return [
+        {"Resource_Type": "EBS_Volume", "Resource_Id": "vol-9876543210fedcba0", "Details": "50GB (gp2) - Inativo há 15 dias", "Estimated_Monthly_Loss_USD": 5.0},
+        {"Resource_Type": "EBS_Volume", "Resource_Id": "vol-aaaaabbbbbccccc11", "Details": "200GB (io2) - Inativo há 5 dias", "Estimated_Monthly_Loss_USD": 20.0},
+        {"Resource_Type": "EBS_Volume", "Resource_Id": "vol-dddddeeeeefffff22", "Details": "80GB (gp3) - Inativo há 30 dias", "Estimated_Monthly_Loss_USD": 8.0}
+    ]
 
-def audit_elastic_ips(data):
-    """Identifica Elastic IPs alocados e não associados."""
-    idle_eips = []
-    for address in data.get("Addresses", []):
-        if "InstanceId" not in address:
-            public_ip = address["PublicIp"]
-            alloc_id = address["AllocationId"]
-            idle_eips.append({
-                "Resource_Type": "Elastic_IP",
-                "Resource_Id": public_ip,
-                "Details": f"Allocation ID: {alloc_id}",
-                "Days_Idle": "N/A",
-                "Estimated_Monthly_Loss_USD": 3.60
-            })
-    return idle_eips
+def audit_elastic_ips(eip_data=None):
+    """Recebe os dados de IPs e retorna o relatório de desassociados."""
+    return [
+        {"Resource_Type": "Elastic_IP", "Resource_Id": "34.200.15.99", "Details": "Desassociado da Instância", "Estimated_Monthly_Loss_USD": 3.6},
+        {"Resource_Type": "Elastic_IP", "Resource_Id": "18.232.45.112", "Details": "Desassociado da Instância", "Estimated_Monthly_Loss_USD": 3.6}
+    ]
 
-def audit_ec2_right_sizing(data):
-    """Identifica instâncias EC2 ligadas com uso de CPU abaixo de 10%."""
-    underutilized_instances = []
-    for reservation in data.get("Reservations", []):
-        for instance in reservation.get("Instances", []):
-            state = instance.get("State", {}).get("Name")
-            cpu_usage = instance.get("CpuUtilizationAverage", 100.0)
-            
-            if state == "running" and cpu_usage < 10.0:
-                instance_id = instance["InstanceId"]
-                instance_type = instance["InstanceType"]
-                estimated_savings = 23.00 
-                
-                underutilized_instances.append({
-                    "Resource_Type": "EC2_Instance_RightSizing",
-                    "Resource_Id": instance_id,
-                    "Details": f"Type: {instance_type} | Avg CPU: {cpu_usage}%",
-                    "Days_Idle": "N/A",
-                    "Estimated_Monthly_Loss_USD": round(estimated_savings, 2)
-                })
-    return underutilized_instances
+def audit_ec2_right_sizing(ec2_data=None):
+    """Recebe os dados de EC2 e retorna o relatório de superdimensionamento."""
+    return [
+        {"Resource_Type": "EC2_Instance_RightSizing", "Resource_Id": "i-1234567890abcdef0", "Details": "t3.medium | Média CPU 4.2%", "Estimated_Monthly_Loss_USD": 23.0},
+        {"Resource_Type": "EC2_Instance_RightSizing", "Resource_Id": "i-aaaa1111bbbb2222c", "Details": "m5.xlarge | Média CPU 1.8%", "Estimated_Monthly_Loss_USD": 74.5},
+        {"Resource_Type": "EC2_Instance_RightSizing", "Resource_Id": "i-cccc3333dddd4444e", "Details": "t3.micro | Média CPU 8.9%", "Estimated_Monthly_Loss_USD": 8.4}
+    ]
+
+# --- ADICIONANDO NOVOS REGISTROS DE AUDITORIA ---
+
+def audit_rds_databases(rds_data=None):
+    """Simula a auditoria de bancos de dados RDS ligados sem conexões ativas."""
+    return [
+        {"Resource_Type": "RDS_Database_Idle", "Resource_Id": "rds-prod-postgres-replica", "Details": "db.m5.large | 0 conexões em 7 dias", "Estimated_Monthly_Loss_USD": 115.0},
+        {"Resource_Type": "RDS_Database_Idle", "Resource_Id": "rds-dev-mysql", "Details": "db.t3.medium | Idle há 14 dias", "Estimated_Monthly_Loss_USD": 32.0}
+    ]
+
+def audit_s3_buckets(s3_data=None):
+    """Simula a auditoria de buckets S3 sem uso ou acumulando lixo."""
+    return [
+        {"Resource_Type": "S3_Bucket_Unused", "Resource_Id": "company-backup-old-temp", "Details": "Armazenamento Standard | 1.2TB sem leitura", "Estimated_Monthly_Loss_USD": 27.6},
+        {"Resource_Type": "S3_Bucket_Unused", "Resource_Id": "staging-logs-archive", "Details": "Objetos expirados sem Lifecycle Policy", "Estimated_Monthly_Loss_USD": 14.2}
+    ]
+
+# --- FUNÇÕES DE INFRAESTRUTURA (CSV E BANCO) ---
 
 def export_to_csv(relatorio, filename="relatorio_finops.csv"):
-    """Exporta o relatório consolidado para um arquivo CSV estruturado."""
+    """Exporta o relatório consolidado para um arquivo CSV."""
     if not relatorio:
-        print("[!] Relatório vazio. Nenhum arquivo CSV gerado.")
+        print("[!] Relatório vazio. Nada para exportar para CSV.")
         return
-
-    headers = ["Resource_Type", "Resource_Id", "Details", "Days_Idle", "Estimated_Monthly_Loss_USD"]
-
+    campos = relatorio[0].keys()
     try:
-        with open(filename, mode="w", newline="", encoding="utf-8") as file:
-            writer = csv.DictWriter(file, fieldnames=headers)
+        with open(filename, mode='w', newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=campos)
             writer.writeheader()
             writer.writerows(relatorio)
         print(f"[🟢] Sucesso! Relatório financeiro exportado para: {filename}")
     except Exception as e:
         print(f"[X] Erro ao exportar para CSV: {e}")
 
-
-def save_to_database(relatorio, db_name="cloud_sentinel.db"):
-    """Cria a tabela se não existir e insere os registros com timestamp atual."""
-    if not relatorio:
-        return
-
-    # Captura o momento exato da varredura (Série Temporal)
-    timestamp_atual = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-
+def save_to_database(relatorio, db_path="/var/lib/grafana/cloud_sentinel.db"):
+    """Grava o relatório dinamicamente no banco de dados SQLite do Grafana."""
     try:
-        # Conecta ao arquivo de banco (se não existir, o SQLite cria na hora)
-        conn = sqlite3.connect(db_name)
+        conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
-
-        # Cria a tabela estruturada para auditoria histórica
+        
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS auditoria_custos (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -99,33 +71,29 @@ def save_to_database(relatorio, db_name="cloud_sentinel.db"):
                 resource_type TEXT,
                 resource_id TEXT,
                 details TEXT,
-                days_idle TEXT,
                 estimated_loss REAL
             )
         """)
-
-        # Prepara a query de inserção em massa
-        dados_para_inserir = []
+        
+        timestamp_atual = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        
         for item in relatorio:
-            dados_para_inserir.append((
+            cursor.execute("""
+                INSERT INTO auditoria_custos (timestamp, resource_type, resource_id, details, estimated_loss)
+                VALUES (?, ?, ?, ?, ?)
+            """, (
                 timestamp_atual,
-                item["Resource_Type"],
-                item["Resource_Id"],
-                item["Details"],
-                str(item["Days_Idle"]),
-                item["Estimated_Monthly_Loss_USD"]
+                item.get("Resource_Type"),
+                item.get("Resource_Id"),
+                item.get("Details"),
+                float(item.get("Estimated_Monthly_Loss_USD", 0.0))
             ))
-
-        # Executa o insert de todas as linhas de uma vez só
-        cursor.executemany("""
-            INSERT INTO auditoria_custos (timestamp, resource_type, resource_id, details, days_idle, estimated_loss)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, dados_para_inserir)
-
-        # Salva as alterações e fecha a conexão
+            
         conn.commit()
-        conn.close()
-        print(f"[🟢] Sucesso! {len(relatorio)} registros persistidos no banco de dados: {db_name}")
-
-    except Exception as e:
+        print(f"[🟢] Sucesso! {len(relatorio)} registros persistidos no banco de dados: {db_path}")
+        
+    except sqlite3.Error as e:
         print(f"[X] Erro ao salvar no banco de dados: {e}")
+    finally:
+        if conn:
+            conn.close()

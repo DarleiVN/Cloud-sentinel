@@ -1,4 +1,13 @@
-Resource_Type,Resource_Id,Details,Days_Idle,Estimated_Monthly_Loss_USD
-EBS_Volume,vol-9876543210fedcba0,50GB (gp2),16,5.0
-Elastic_IP,34.200.15.99,Allocation ID: eipalloc-9876543210fedcba0,N/A,3.6
-EC2_Instance_RightSizing,i-1234567890abcdef0,Type: t3.medium | Avg CPU: 4.2%,N/A,23.0
+Resource_Type,Resource_Id,Details,Estimated_Monthly_Loss_USD
+EBS_Volume,vol-9876543210fedcba0,50GB (gp2) - Inativo há 15 dias,5.0
+EBS_Volume,vol-aaaaabbbbbccccc11,200GB (io2) - Inativo há 5 dias,20.0
+EBS_Volume,vol-dddddeeeeefffff22,80GB (gp3) - Inativo há 30 dias,8.0
+Elastic_IP,34.200.15.99,Desassociado da Instância,3.6
+Elastic_IP,18.232.45.112,Desassociado da Instância,3.6
+EC2_Instance_RightSizing,i-1234567890abcdef0,t3.medium | Média CPU 4.2%,23.0
+EC2_Instance_RightSizing,i-aaaa1111bbbb2222c,m5.xlarge | Média CPU 1.8%,74.5
+EC2_Instance_RightSizing,i-cccc3333dddd4444e,t3.micro | Média CPU 8.9%,8.4
+RDS_Database_Idle,rds-prod-postgres-replica,db.m5.large | 0 conexões em 7 dias,115.0
+RDS_Database_Idle,rds-dev-mysql,db.t3.medium | Idle há 14 dias,32.0
+S3_Bucket_Unused,company-backup-old-temp,Armazenamento Standard | 1.2TB sem leitura,27.6
+S3_Bucket_Unused,staging-logs-archive,Objetos expirados sem Lifecycle Policy,14.2
