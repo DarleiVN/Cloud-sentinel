@@ -1,0 +1,4 @@
+Resource_Type,Resource_Id,Details,Days_Idle,Estimated_Monthly_Loss_USD
+EBS_Volume,vol-9876543210fedcba0,50GB (gp2),16,5.0
+Elastic_IP,34.200.15.99,Allocation ID: eipalloc-9876543210fedcba0,N/A,3.6
+EC2_Instance_RightSizing,i-1234567890abcdef0,Type: t3.medium | Avg CPU: 4.2%,N/A,23.0

@@ -2,7 +2,7 @@ import json
 import sys
 
 from mocks import get_mock_aws_data
-from auditors import audit_ebs_volumes, audit_elastic_ips, audit_ec2_right_sizing
+from auditors import audit_ebs_volumes, audit_elastic_ips, audit_ec2_right_sizing, export_to_csv, save_to_database
 
 try:
     import boto3
@@ -21,7 +21,6 @@ if __name__ == "__main__":
         print("[!] Executando em MODO SIMULADO (Dados Sintéticos).")
         ebs_data, eip_data, ec2_data = get_mock_aws_data()
         
-        # Executa as 3 auditorias agora!
         relatorio_completo.extend(audit_ebs_volumes(ebs_data))
         relatorio_completo.extend(audit_elastic_ips(eip_data))
         relatorio_completo.extend(audit_ec2_right_sizing(ec2_data))
@@ -47,3 +46,7 @@ if __name__ == "__main__":
     
     print("\n[+] Relatório de Auditoria Consolidado (JSON Gerado):")
     print(json.dumps(relatorio_completo, indent=4, default=str))
+
+    # Novas engrenagens de saída de dados:
+    export_to_csv(relatorio_completo)
+    save_to_database(relatorio_completo) # <--- O NOVO MOTOR DE BANCO DE DADOS AQUI!
