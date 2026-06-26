@@ -2,13 +2,12 @@ import json
 import sys
 
 from mocks import get_mock_aws_data
-# Organizado com parênteses para incluir as duas novas funções de FinOps
 from auditors import (
     audit_ebs_volumes, 
     audit_elastic_ips, 
     audit_ec2_right_sizing, 
-    audit_rds_databases,  # Adicionado
-    audit_s3_buckets,     # Adicionado
+    audit_rds_databases,  
+    audit_s3_buckets,     
     export_to_csv, 
     save_to_database
 )
