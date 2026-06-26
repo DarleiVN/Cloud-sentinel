@@ -4,7 +4,7 @@ Auditoria automatizada de FinOps para ambientes AWS. Identifica recursos ociosos
 
 ## O problema
 
-Recursos provisionados na AWS e esquecidos continuam gerando custo mesmo sem entregar valor. Um volume EBS sobrevive à instância que o usava; um Elastic IP fica alocado sem nunca ser associado a nada. Isoladamente, cada um parece irrelevante — acumulados ao longo de meses, sem visibilidade, é o que causa faturas inesperadamente altas.
+Recursos provisionados na AWS e esquecidos continuam gerando custo mesmo sem entregar valor. Um volume EBS sobrevive à instância que o usava; um Elastic IP fica alocado sem nunca ser associado a nada. Isoladamente, cada um parece irrelevante acumulados ao longo de meses, sem visibilidade, é o que causa faturas inesperadamente altas.
 
 O **Cloud Sentinel** automatiza essa detecção: varre os recursos, identifica os que estão ociosos, estima o custo desperdiçado e grava o resultado para consulta.
 
@@ -91,25 +91,25 @@ Lista de Recursos para Otimização (Table Panel): Visão operacional para o tim
 ![Dashboard de Monitoramento FinOps](./img/dashboard.png)
 **Queries Analíticas Utilizadas no Ecossistema**
 
-*Mapeamento de Tendência e Séries Temporais:*
+**Mapeamento de Tendência e Séries Temporais:**
 
-SELECT 
-    CAST(strftime('%s', timestamp) AS INTEGER) AS time,
-    estimated_loss AS value,
-    resource_type AS metric
-FROM auditoria_custos
-ORDER BY time ASC;
+    SELECT 
+        CAST(strftime('%s', timestamp) AS INTEGER) AS time,
+        estimated_loss AS value,
+        resource_type AS metric
+    FROM auditoria_custos
+    ORDER BY time ASC;
 
-*Painel Operacional de Recursos Ativos:*
+**Painel Operacional de Recursos Ativos:**
 
-SELECT 
-    timestamp AS "Data/Hora",
-    resource_type AS "Tipo de Recurso",
-    resource_id AS "ID do Recurso",
-    details AS "Detalhes / Motivo",
-    estimated_loss AS "Perda Estimada (USD)"
-FROM auditoria_custos
-ORDER BY timestamp DESC;
+    SELECT 
+        timestamp AS "Data/Hora",
+        resource_type AS "Tipo de Recurso",
+        resource_id AS "ID do Recurso",
+        details AS "Detalhes / Motivo",
+        estimated_loss AS "Perda Estimada (USD)"
+    FROM auditoria_custos
+    ORDER BY timestamp DESC;
 
 
 ## Como funciona, na prática
